@@ -1,22 +1,30 @@
 const express = require("express");
-const taskRoutes = require("./Routes/tasks");
+const taskRoutes = require("./Routes/tasks").router;
+const readTasks = require("./Routes/tasks").readTasks;
+const { logging, errorHandler } = require("./middlewares");
 const app = express();
 
+// Middlewares
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(errorHandler);
+app.use(logging);
 
-// handle errors
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send("Something went wrong");
-});
+// view engine
+app.set("view engine", "ejs");
 
-app.use((req, res, next) => {
-  console.log(req.method, req.originalUrl);
-  next();
-});
-
-//mount task routes
+// api task routes
 app.use("/tasks", taskRoutes);
+
+// render index
+app.get("/", (req, res) => {
+  const tasks = readTasks();
+  res.render("index", { tasks });
+});
+app.get("/addtask", (req, res) => {
+  res.render("addtask");
+});
+
 //start server
 app.listen(3000, () => {
   console.log("server is running on port 3000");

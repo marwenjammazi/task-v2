@@ -2,24 +2,15 @@ const fs = require("fs");
 const express = require("express");
 const router = express.Router();
 const path = require("path");
-
+const { validationTask } = require("../middlewares");
 const filePath = path.join(__dirname, "../tasks.json");
-
-const validationTitle = (req, res, next) => {
-  if (req.body.title && req.body.title.trim() === "") res.sendStatus(404);
-  if (
-    req.body.completed !== undefined &&
-    typeof req.body.completed !== "boolean"
-  )
-    res.sendStatus(404);
-  next();
-};
 
 const readTasks = () => {
   const data = fs.readFileSync(filePath, "utf8");
   if (data) return JSON.parse(data);
   else return [];
 };
+
 // read all tasks
 router.get("/", (req, res) => {
   const tasks = readTasks();
@@ -28,7 +19,7 @@ router.get("/", (req, res) => {
 });
 
 // post adding task
-router.post("/", validationTitle, (req, res) => {
+router.post("/", validationTask, (req, res) => {
   const title = req.body.title;
   console.log(title);
   const tasks = readTasks();
@@ -50,7 +41,7 @@ router.get("/:id", (req, res) => {
 });
 
 //updating
-router.put("/:id", validationTitle, (req, res) => {
+router.put("/:id", validationTask, (req, res) => {
   const id = Number(req.params.id);
   const { title, completed } = req.body;
   const tasks = readTasks();
@@ -70,4 +61,5 @@ router.delete("/:id", (req, res) => {
   fs.writeFileSync(filePath, JSON.stringify(filteredTask));
   res.sendStatus(200);
 });
-module.exports = router;
+
+module.exports = { router, readTasks };
